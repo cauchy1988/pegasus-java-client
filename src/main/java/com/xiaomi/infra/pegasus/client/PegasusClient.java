@@ -59,6 +59,7 @@ public class PegasusClient implements PegasusClientInterface {
             Table internalTable = cluster.openTable(tableName, internalTableOptions);
             table = new PegasusTable(this, internalTable);
           } catch (Throwable e) {
+            e.printStackTrace();
             throw new PException(e);
           }
           tableMap.put(tableName, table);
