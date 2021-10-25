@@ -6,6 +6,8 @@ import java.util.List;
 import sun.misc.Signal;
 import sun.misc.SignalHandler;
 
+// cmd : java -classpath ./library/*:pegasus-client-2.1-SNAPSHOT.jar -Dlog4j.configuration=file:../configuration/log4j.properties com.xiaomi.infra.pegasus.client.DeadLockRecurrence
+
 public class DeadLockRecurrence {
   private static volatile boolean isRunning = true;
 
