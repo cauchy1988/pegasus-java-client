@@ -20,6 +20,7 @@
 package com.xiaomi.infra.pegasus.client;
 
 import com.xiaomi.infra.pegasus.rpc.Cluster;
+import java.util.Properties;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +29,14 @@ public abstract class PegasusAbstractClient {
   private static final Logger LOGGER = LoggerFactory.getLogger(PegasusAbstractClient.class);
   protected final ClientOptions clientOptions;
   protected Cluster cluster;
+
+  public PegasusAbstractClient(Properties properties) throws PException {
+    this(ClientOptions.create(properties));
+  }
+
+  public PegasusAbstractClient(String configPath) throws PException {
+    this(ClientOptions.create(configPath));
+  }
 
   protected PegasusAbstractClient(ClientOptions options) throws PException {
     this.clientOptions = options;

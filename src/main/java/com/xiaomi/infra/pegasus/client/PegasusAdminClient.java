@@ -42,19 +42,25 @@ public class PegasusAdminClient extends PegasusAbstractClient
     return "Admin";
   }
 
+  private void initMetaHandler() {
+    this.meta = this.cluster.getMeta();
+    LOGGER.info(
+        "Create PegasusAdminClient Instance By ClientOptions : {}", this.clientOptions.toString());
+  }
+
   public PegasusAdminClient(Properties properties) throws PException {
-    this(ClientOptions.create(properties));
+    super(properties);
+    initMetaHandler();
   }
 
   public PegasusAdminClient(String configPath) throws PException {
-    this(ClientOptions.create(configPath));
+    super(configPath);
+    initMetaHandler();
   }
 
   public PegasusAdminClient(ClientOptions options) throws PException {
     super(options);
-    this.meta = this.cluster.getMeta();
-    LOGGER.info(
-        "Create PegasusAdminClient Instance By ClientOptions : {}", this.clientOptions.toString());
+    initMetaHandler();
   }
 
   @Override

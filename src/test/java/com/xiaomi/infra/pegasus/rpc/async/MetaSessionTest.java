@@ -103,7 +103,8 @@ public class MetaSessionTest {
                 }
               });
       callbacks.add(callback);
-      session.asyncQuery(op, callback, 10);
+      session.asyncExecute(
+          op, callback, MetaSession.MetaRequestRoundType.ROUND_WITH_MAX_EXECUTE_COUNT, 10, 0);
     }
 
     Toollet.closeServer(addr);
@@ -197,8 +198,8 @@ public class MetaSessionTest {
               @Override
               public void run() {}
             },
-            10,
-            meta.getMetaList().get(0));
+            meta.getMetaList().get(0),
+            10);
 
     // simulate a failed query meta, but ensure it will not retry after a failure.
     Mockito.doNothing().when(meta).retryQueryMeta(round, false);
@@ -211,21 +212,21 @@ public class MetaSessionTest {
     Mockito.when(meta.resolve(("localhost:34601"))).thenReturn(addrs2);
 
     // meta all dead, query failed.
-    meta.onFinishQueryMeta(round);
+    meta.onFinishMetaRequest(round);
     // switch curLeader to 1, meta list unchanged.
     Assert.assertArrayEquals(getAddressFromSession(meta.getMetaList()), addrs);
     Integer curLeader = (Integer) FieldUtils.readField(meta, "curLeader", true);
     Assert.assertEquals(curLeader.intValue(), 1);
 
     // failed again
-    meta.onFinishQueryMeta(round);
+    meta.onFinishMetaRequest(round);
     // switch curLeader to 0, meta list updated
     Assert.assertArrayEquals(getAddressFromSession(meta.getMetaList()), addrs2);
     curLeader = (Integer) FieldUtils.readField(meta, "curLeader", true);
     Assert.assertEquals(curLeader.intValue(), 0);
 
     // retry
-    meta.onFinishQueryMeta(round);
+    meta.onFinishMetaRequest(round);
     Assert.assertArrayEquals(getAddressFromSession(meta.getMetaList()), addrs2);
   }
 
@@ -264,14 +265,14 @@ public class MetaSessionTest {
               @Override
               public void run() {}
             },
-            10,
-            meta.getMetaList().get(0));
+            meta.getMetaList().get(0),
+            10);
 
     // do not retry after a failed QueryMeta.
     Mockito.doNothing().when(meta).retryQueryMeta(round, false);
 
     // failed to query meta
-    meta.onFinishQueryMeta(round);
+    meta.onFinishMetaRequest(round);
 
     rpc_address[] addrs2 = Arrays.copyOf(addrs, 3);
     addrs2[2] = rpc_address.fromIpPort("172.0.0.3:34601");
@@ -311,7 +312,7 @@ public class MetaSessionTest {
     // `MetaSession#query` will first query the 3 old addresses (and failed), then resolve the DNS
     // and find the 5 new addresses.
     // Even though the given maxQueryCount is given 3, the total query count is at least 6.
-    metaMock.query(op, metaList.size());
+    metaMock.executeWithMaxExecuteCount(op, metaList.size());
     error_types err = MetaSession.getMetaServiceError(op);
     Assert.assertEquals(error_code.error_types.ERR_OK, err);
   }
@@ -340,7 +341,7 @@ public class MetaSessionTest {
     Mockito.when(metaMock.resolve("localhost:34601")).thenReturn(newAddrs);
     query_cfg_request req = new query_cfg_request("temp", new ArrayList<Integer>());
     client_operator op = new query_cfg_operator(new gpid(-1, -1), req);
-    metaMock.query(op, metaList.size());
+    metaMock.executeWithMaxExecuteCount(op, metaList.size());
     Assert.assertEquals(error_types.ERR_TIMEOUT, MetaSession.getMetaServiceError(op));
   }
 }
